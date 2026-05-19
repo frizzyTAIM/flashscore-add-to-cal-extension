@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "Flashscore Add to Calendar",
+  "version": "1.0.0",
+  "description": "Adds a 📅 button to upcoming matches on flashscore.info/favorites/",
+  "content_scripts": [
+    {
+      "matches": ["*://flashscore.info/favorites/", "*://www.flashscore.info/favorites/"],
+      "js": ["src/calendarUrlBuilder.js", "src/matchScraper.js", "src/buttonInjector.js", "src/domObserver.js", "src/content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
