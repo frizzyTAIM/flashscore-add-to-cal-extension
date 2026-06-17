@@ -1,6 +1,6 @@
 /** @jest-environment jsdom */
 
-const { scrapeMatches, parseDateTime, findPrecedingDateInfo } = require('../src/matchScraper');
+const { scrapeMatches, parseDateTime, parseDateTimeFromText, findPrecedingDateInfo } = require('../src/matchScraper');
 
 function buildDOM(html) {
   document.body.innerHTML = html;
@@ -144,4 +144,80 @@ test('возвращает пустой массив, когда нет пред
 test('возвращает пустой массив, когда leagues--live отсутствует в DOM', () => {
   buildDOM('<div></div>');
   expect(scrapeMatches(FUTURE)).toEqual([]);
+});
+
+// --- parseDateTimeFromText (формат турнирных страниц) ---
+
+test('parseDateTimeFromText: корректно разбирает "18.06. 00:00"', () => {
+  const date = parseDateTimeFromText('18.06. 00:00');
+  expect(date).not.toBeNull();
+  expect(date.getDate()).toBe(18);
+  expect(date.getMonth()).toBe(5); // June = 5
+  expect(date.getHours()).toBe(0);
+  expect(date.getMinutes()).toBe(0);
+});
+
+test('parseDateTimeFromText: возвращает null при неверном формате', () => {
+  expect(parseDateTimeFromText('22:30')).toBeNull();
+  expect(parseDateTimeFromText('')).toBeNull();
+});
+
+// --- scrapeMatches на турнирной странице ---
+
+const TOURNAMENT_HTML = `
+<div class="leagues--static event--leagues sportName soccer">
+  <div class="headerLeague__wrapper">
+    <span data-testid="wcl-scores-simple-text-01">World Championship</span>
+  </div>
+  <div class="event__round event__round--static">Round 1</div>
+  <div class="event__match event__match--scheduled" data-event-row="true">
+    <a class="eventRowLink" href="https://www.flashscore.info/match/football/england/croatia/"></a>
+    <div class="event__homeParticipant">England</div>
+    <div class="event__awayParticipant">Croatia</div>
+    <div class="event__time">18.06. 00:00</div>
+    <a class="event__icon event__icon--audio"></a>
+  </div>
+  <div class="event__match event__match--scheduled" data-event-row="true">
+    <a class="eventRowLink" href="https://www.flashscore.info/match/football/ghana/panama/"></a>
+    <div class="event__homeParticipant">Ghana</div>
+    <div class="event__awayParticipant">Panama</div>
+    <div class="event__time">18.06. 03:00</div>
+    <a class="event__icon event__icon--audio"></a>
+  </div>
+  <div class="event__round event__round--static">Round 2</div>
+  <div class="event__match event__match--scheduled" data-event-row="true">
+    <a class="eventRowLink" href="https://www.flashscore.info/match/football/brazil/haiti/"></a>
+    <div class="event__homeParticipant">Brazil</div>
+    <div class="event__awayParticipant">Haiti</div>
+    <div class="event__time">20.06. 04:30</div>
+    <a class="event__icon event__icon--audio"></a>
+  </div>
+</div>
+`;
+
+test('турнирная страница: парсит дату из event__time', () => {
+  buildDOM(TOURNAMENT_HTML);
+  const matches = scrapeMatches(FUTURE);
+  expect(matches).toHaveLength(3);
+  const england = matches[0];
+  expect(england.homeTeam).toBe('England');
+  expect(england.awayTeam).toBe('Croatia');
+  expect(england.tournament).toBe('World Championship');
+  expect(england.startTime.getDate()).toBe(18);
+  expect(england.startTime.getMonth()).toBe(5);
+});
+
+test('турнирная страница: исключает прошедшие матчи', () => {
+  buildDOM(TOURNAMENT_HTML);
+  const now = new Date('2099-01-01T00:00:00Z');
+  expect(scrapeMatches(now)).toHaveLength(0);
+});
+
+test('турнирная страница: возвращает все матчи из разных раундов', () => {
+  buildDOM(TOURNAMENT_HTML);
+  const matches = scrapeMatches(FUTURE);
+  const teams = matches.map(m => m.homeTeam);
+  expect(teams).toContain('England');
+  expect(teams).toContain('Ghana');
+  expect(teams).toContain('Brazil');
 });

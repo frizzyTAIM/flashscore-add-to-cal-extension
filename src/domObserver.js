@@ -7,6 +7,7 @@ function initObserver() {
 
   const container =
     document.querySelector('#live-table') ||
+    document.querySelector('.leagues--static') ||
     document.querySelector('.leagues--live') ||
     document.body;
 

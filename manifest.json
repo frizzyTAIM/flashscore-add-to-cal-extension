@@ -5,7 +5,12 @@
   "description": "Adds a 📅 button to upcoming matches on flashscore.info/favorites/",
   "content_scripts": [
     {
-      "matches": ["*://flashscore.info/favorites/", "*://www.flashscore.info/favorites/"],
+      "matches": [
+        "*://flashscore.info/favorites/",
+        "*://www.flashscore.info/favorites/",
+        "*://flashscore.info/football/*/*/",
+        "*://www.flashscore.info/football/*/*/"
+      ],
       "js": ["src/calendarUrlBuilder.js", "src/matchScraper.js", "src/buttonInjector.js", "src/domObserver.js", "src/content.js"],
       "run_at": "document_idle"
     }

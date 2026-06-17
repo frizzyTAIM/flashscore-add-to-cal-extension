@@ -23,7 +23,26 @@ function parseDateTime(dateText, timeText) {
   const year = new Date().getFullYear();
   const date = new Date(year, month, day, hours, minutes);
 
-  // Handle year rollover: if date is more than 30 days in the past, it's next year
+  if (date.getTime() < Date.now() - 30 * 24 * 60 * 60 * 1000) {
+    return new Date(year + 1, month, day, hours, minutes);
+  }
+
+  return date;
+}
+
+// Tournament pages encode date+time together: "18.06. 00:00"
+function parseDateTimeFromText(text) {
+  const match = text.match(/(\d{2})\.(\d{2})\.\s+(\d{2}):(\d{2})/);
+  if (!match) return null;
+
+  const day = parseInt(match[1], 10);
+  const month = parseInt(match[2], 10) - 1;
+  const hours = parseInt(match[3], 10);
+  const minutes = parseInt(match[4], 10);
+
+  const year = new Date().getFullYear();
+  const date = new Date(year, month, day, hours, minutes);
+
   if (date.getTime() < Date.now() - 30 * 24 * 60 * 60 * 1000) {
     return new Date(year + 1, month, day, hours, minutes);
   }
@@ -41,12 +60,20 @@ function scrapeMatches(now = new Date()) {
       ?.querySelector('span[data-testid="wcl-scores-simple-text-01"]')
       ?.textContent?.trim() ?? '';
 
-    const eventSection = row.closest('.event--section');
-    const dateEl = findPrecedingDateInfo(eventSection);
-    const dateText = dateEl ? dateEl.textContent.trim() : '';
-
     const timeText = row.querySelector('.event__time')?.textContent?.trim() ?? '';
-    const startTime = parseDateTime(dateText, timeText);
+
+    let startTime;
+    if (/\d{2}\.\d{2}\./.test(timeText)) {
+      // Tournament page: date+time in one field, e.g. "18.06. 00:00"
+      startTime = parseDateTimeFromText(timeText);
+    } else {
+      // Favorites page: time only, e.g. "22:30" — find date from section header
+      const eventSection = row.closest('.event--section');
+      const dateEl = findPrecedingDateInfo(eventSection);
+      const dateText = dateEl ? dateEl.textContent.trim() : '';
+      startTime = parseDateTime(dateText, timeText);
+    }
+
     if (!startTime || startTime <= now) continue;
 
     const homeTeam = row.querySelector('.event__homeParticipant')?.textContent?.trim() ?? '';
@@ -60,4 +87,4 @@ function scrapeMatches(now = new Date()) {
   return matches;
 }
 
-if (typeof module !== 'undefined') module.exports = { scrapeMatches, parseDateTime, findPrecedingDateInfo };
+if (typeof module !== 'undefined') module.exports = { scrapeMatches, parseDateTime, parseDateTimeFromText, findPrecedingDateInfo };
