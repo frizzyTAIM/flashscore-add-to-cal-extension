@@ -2,25 +2,25 @@
 
 ## Project Overview
 
-A Chrome Extension (Manifest V3) that adds a 📅 button to every upcoming football match on `flashscore.info/favorites/`. Clicking the button opens Google Calendar in a new tab with the match pre-filled as a 2-hour event.
+A Chrome Extension (Manifest V3) that adds a 📅 button to every upcoming football match on Flashscore — on the favorites page, tournament/league pages, and a team's own fixtures page. Clicking the button opens Google Calendar in a new tab with the match pre-filled as a 2-hour event.
 
-Built for personal use only. Installed as an unpacked extension via `chrome://extensions`.
+Built for personal use only. Installed as an unpacked extension via `chrome://extensions`. See [README.md](README.md) for install instructions (EN/RU).
 
 ## GitHub Repository
 
-https://github.com/frizzyTAIM/flashscore-add-to-cal-extension
+https://github.com/frizzyTAIM/flashscore-add-to-cal-extension (public)
 
-GitHub Issues are used as the task tracker. All 5 issues are already created there.
+GitHub Issues are the task tracker. Check current state with `gh issue list --state all` rather than relying on any list hardcoded here — that list will always go stale.
 
 ## PRD
 
 ### Problem Statement
 
-The user follows multiple football teams and leagues on Flashscore. The `/favorites/` page shows all upcoming matches, but adding them to Google Calendar requires manual copy-paste work. With 4-5 matches per week this is tedious and matches get missed.
+The user follows multiple football teams and leagues on Flashscore. Match lists (favorites, tournament pages, a team's fixtures page) show all upcoming matches, but adding them to Google Calendar requires manual copy-paste work. With 4-5 matches per week this is tedious and matches get missed.
 
 ### Solution
 
-Chrome Extension adds a 📅 emoji button in the right icon column of every upcoming match on `flashscore.info/favorites/`. Clicking opens Google Calendar in a new tab with pre-filled event data. After clicking, the icon shows ✅ for 2 seconds as confirmation.
+Chrome Extension adds a 📅 emoji button in the right icon column of every upcoming match, wherever Flashscore lists one (see Scope below). Clicking opens Google Calendar in a new tab with pre-filled event data. After clicking, the icon shows ✅ for 2 seconds as confirmation.
 
 ### Key Decisions
 
@@ -29,15 +29,16 @@ Chrome Extension adds a 📅 emoji button in the right icon column of every upco
 - **Event duration**: 2 hours (start time + 2h)
 - **Event description**: Flashscore match URL + venue/stadium
 - **Time handling**: All times converted to UTC in `YYYYMMDDTHHmmssZ` format; Google Calendar displays in user's local timezone automatically
-- **Scope**: Only on `flashscore.info/favorites/`, only upcoming matches (startTime > now)
+- **Scope**: `flashscore.info/favorites/`, `flashscore.info/football/*/*/` (tournament/league pages), `flashscore.info/team/*/*/fixtures/` (team fixtures) — only upcoming matches (startTime > now). Check `manifest.json` content_scripts.matches for the authoritative current list.
 - **Dynamic updates**: MutationObserver handles DOM changes without page reload
 - **Button placement**: Right icon column of each match row, alongside existing icons (headphones etc.)
 - **No button duplication**: Rows marked with a data attribute after injection
+- **Selector fragility**: Flashscore's CSS classes drift over time (e.g. `.event__time` was replaced by `.event__stageTime` on most pages). `matchScraper` checks both old and new class names as fallbacks rather than assuming one — expect to keep doing this when pages break.
 
 ## Architecture: 4 Modules
 
 ### 1. MatchScraper
-Reads the DOM of `/favorites/`, returns array of `MatchData` objects for upcoming matches only.
+Reads the DOM of the current page (favorites, tournament, or team fixtures — see Scope), returns array of `MatchData` objects for upcoming matches only.
 
 ```
 MatchData {
@@ -59,14 +60,6 @@ Inserts 📅 into the right column of each match row. Handles click → open URL
 ### 4. DOMObserver
 Initializes MutationObserver on the matches container. Runs MatchScraper + ButtonInjector on page load and on every DOM change.
 
-## GitHub Issues (task tracker)
-
-- [#1 Extension scaffold](https://github.com/frizzyTAIM/flashscore-add-to-cal-extension/issues/1) — manifest.json, content script skeleton. **Start here.**
-- [#2 CalendarUrlBuilder + tests](https://github.com/frizzyTAIM/flashscore-add-to-cal-extension/issues/2) — pure URL builder module. No blockers.
-- [#3 MatchScraper + tests](https://github.com/frizzyTAIM/flashscore-add-to-cal-extension/issues/3) — DOM scraper module. No blockers.
-- [#4 Full integration](https://github.com/frizzyTAIM/flashscore-add-to-cal-extension/issues/4) — wire all modules together. Blocked by #1, #2, #3.
-- [#5 MutationObserver](https://github.com/frizzyTAIM/flashscore-add-to-cal-extension/issues/5) — dynamic DOM updates. Blocked by #4.
-
 ## Testing
 
 - **CalendarUrlBuilder**: full unit test coverage (time conversion, URL format, edge cases)
@@ -78,4 +71,4 @@ Initializes MutationObserver on the matches container. Runs MatchScraper + Butto
 
 When opening this project in VS Code and starting a new Claude Code chat, say:
 
-> "Read CLAUDE.md and the GitHub issues, then let's continue building the extension starting with issue #1."
+> "Read CLAUDE.md, check open GitHub issues (`gh issue list`), and let's continue from there."
