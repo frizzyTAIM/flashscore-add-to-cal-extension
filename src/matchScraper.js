@@ -60,7 +60,10 @@ function scrapeMatches(now = new Date()) {
       ?.querySelector('span[data-testid="wcl-scores-simple-text-01"]')
       ?.textContent?.trim() ?? '';
 
-    const timeText = row.querySelector('.event__time')?.textContent?.trim() ?? '';
+    // Flashscore has migrated most pages from .event__time to .event__stageTime;
+    // keep both so we don't silently stop matching if a page still uses the old one.
+    const timeText = (row.querySelector('.event__time') || row.querySelector('.event__stageTime'))
+      ?.textContent?.trim() ?? '';
 
     let startTime;
     if (/\d{2}\.\d{2}\./.test(timeText)) {

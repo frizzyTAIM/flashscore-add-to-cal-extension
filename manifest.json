@@ -9,7 +9,9 @@
         "*://flashscore.info/favorites/",
         "*://www.flashscore.info/favorites/",
         "*://flashscore.info/football/*/*/",
-        "*://www.flashscore.info/football/*/*/"
+        "*://www.flashscore.info/football/*/*/",
+        "*://flashscore.info/team/*/*/fixtures/",
+        "*://www.flashscore.info/team/*/*/fixtures/"
       ],
       "js": ["src/calendarUrlBuilder.js", "src/matchScraper.js", "src/buttonInjector.js", "src/domObserver.js", "src/content.js"],
       "run_at": "document_idle"

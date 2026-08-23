@@ -221,3 +221,45 @@ test('турнирная страница: возвращает все матч�
   expect(teams).toContain('Ghana');
   expect(teams).toContain('Brazil');
 });
+
+// --- scrapeMatches на странице команды (event__stageTime вместо event__time, issue #8) ---
+
+const TEAM_FIXTURES_HTML = `
+<div class="leagues--static event--leagues sportName soccer">
+  <div class="headerLeague__wrapper">
+    <span data-testid="wcl-scores-simple-text-01">Premier League</span>
+  </div>
+  <div class="event__match event__match--scheduled" data-event-row="true">
+    <a class="eventRowLink" href="https://www.flashscore.info/match/football/spartak-moscow/zenit/"></a>
+    <div class="event__homeParticipant">Spartak Moscow</div>
+    <div class="event__awayParticipant">Zenit</div>
+    <span class="event__stageTime event__stageTime--date">23.08. 22:00</span>
+  </div>
+  <div class="event__match event__match--scheduled" data-event-row="true">
+    <a class="eventRowLink" href="https://www.flashscore.info/match/football/spartak-moscow/orenburg/"></a>
+    <div class="event__homeParticipant">Spartak Moscow</div>
+    <div class="event__awayParticipant">Orenburg</div>
+    <span class="event__stageTime event__stageTime--date">30.08. 19:30</span>
+  </div>
+</div>
+`;
+
+test('страница команды: парсит дату из event__stageTime, когда event__time отсутствует', () => {
+  buildDOM(TEAM_FIXTURES_HTML);
+  const matches = scrapeMatches(FUTURE);
+  expect(matches).toHaveLength(2);
+
+  const first = matches[0];
+  expect(first.homeTeam).toBe('Spartak Moscow');
+  expect(first.awayTeam).toBe('Zenit');
+  expect(first.tournament).toBe('Premier League');
+  expect(first.startTime.getDate()).toBe(23);
+  expect(first.startTime.getMonth()).toBe(7); // August = 7
+  expect(first.startTime.getHours()).toBe(22);
+});
+
+test('страница команды: матч без иконок в строке всё равно включается', () => {
+  buildDOM(TEAM_FIXTURES_HTML);
+  const matches = scrapeMatches(FUTURE);
+  expect(matches.every(m => m.matchUrl.includes('spartak-moscow'))).toBe(true);
+});
