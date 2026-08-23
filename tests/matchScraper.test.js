@@ -1,6 +1,13 @@
 /** @jest-environment jsdom */
 
-const { scrapeMatches, parseDateTime, parseDateTimeFromText, findPrecedingDateInfo } = require('../src/matchScraper');
+const {
+  scrapeMatches,
+  parseDateTime,
+  parseDateTimeFromText,
+  parseDateOnly,
+  parseTimeOnlyAsToday,
+  findPrecedingDateInfo,
+} = require('../src/matchScraper');
 
 function buildDOM(html) {
   document.body.innerHTML = html;
@@ -262,4 +269,110 @@ test('страница команды: матч без иконок в стро�
   buildDOM(TEAM_FIXTURES_HTML);
   const matches = scrapeMatches(FUTURE);
   expect(matches.every(m => m.matchUrl.includes('spartak-moscow'))).toBe(true);
+});
+
+// --- parseDateOnly (дальние матчи без объявленного времени, формат "DD.MM.YYYY") ---
+
+test('parseDateOnly: корректно разбирает "27.02.2027"', () => {
+  const date = parseDateOnly('27.02.2027');
+  expect(date).not.toBeNull();
+  expect(date.getDate()).toBe(27);
+  expect(date.getMonth()).toBe(1); // February = 1
+  expect(date.getFullYear()).toBe(2027);
+});
+
+test('parseDateOnly: возвращает null, если в строке есть время', () => {
+  expect(parseDateOnly('27.02.2027 19:30')).toBeNull();
+  expect(parseDateOnly('27.02.')).toBeNull();
+  expect(parseDateOnly('')).toBeNull();
+});
+
+// --- parseTimeOnlyAsToday (сегодняшний матч на странице команды, голое время без даты) ---
+
+test('parseTimeOnlyAsToday: считает голое время сегодняшней датой', () => {
+  const now = new Date(2026, 7, 23, 16, 45); // 23 августа 2026, 16:45
+  const date = parseTimeOnlyAsToday('19:30', now);
+  expect(date).not.toBeNull();
+  expect(date.getFullYear()).toBe(2026);
+  expect(date.getMonth()).toBe(7);
+  expect(date.getDate()).toBe(23);
+  expect(date.getHours()).toBe(19);
+  expect(date.getMinutes()).toBe(30);
+});
+
+test('parseTimeOnlyAsToday: возвращает null при неверном формате', () => {
+  expect(parseTimeOnlyAsToday('27.02.2027', new Date())).toBeNull();
+  expect(parseTimeOnlyAsToday('', new Date())).toBeNull();
+});
+
+// --- scrapeMatches: дальний матч без времени (issue про Rodina Moscow) ---
+
+test('матч без объявленного времени всё равно попадает в список, timeKnown: false', () => {
+  buildDOM(`
+    <div class="leagues--static event--leagues sportName soccer">
+      <div class="headerLeague__wrapper">
+        <span data-testid="wcl-scores-simple-text-01">Premier League</span>
+      </div>
+      <div class="event__match event__match--scheduled" data-event-row="true">
+        <a class="eventRowLink" href="https://www.flashscore.info/match/football/baltika/rodina-moscow/"></a>
+        <div class="event__homeParticipant">Baltika</div>
+        <div class="event__awayParticipant">Rodina Moscow</div>
+        <span class="event__stageTime event__stageTime--date">27.02.2027</span>
+      </div>
+    </div>
+  `);
+  const matches = scrapeMatches(FUTURE);
+  expect(matches).toHaveLength(1);
+  expect(matches[0].timeKnown).toBe(false);
+  expect(matches[0].startTime.getFullYear()).toBe(2027);
+  expect(matches[0].startTime.getMonth()).toBe(1);
+  expect(matches[0].startTime.getDate()).toBe(27);
+});
+
+test('обычный матч со временем помечен timeKnown: true', () => {
+  buildDOM(TEAM_FIXTURES_HTML);
+  const matches = scrapeMatches(FUTURE);
+  expect(matches.every(m => m.timeKnown === true)).toBe(true);
+});
+
+// --- scrapeMatches: сегодняшний матч на странице команды, голое время, нет date-заголовка ---
+
+test('сегодняшний матч без date-заголовка (страница команды) попадает в список', () => {
+  const now = new Date(2026, 7, 23, 16, 45); // 23 августа 2026, 16:45
+  buildDOM(`
+    <div class="leagues--static event--leagues sportName soccer">
+      <div class="headerLeague__wrapper">
+        <span data-testid="wcl-scores-simple-text-01">Premier League</span>
+      </div>
+      <div class="event__match event__match--scheduled" data-event-row="true">
+        <a class="eventRowLink" href="https://www.flashscore.info/match/football/dynamo-makhachkala/krasnodar/"></a>
+        <div class="event__homeParticipant">Dynamo Makhachkala</div>
+        <div class="event__awayParticipant">Krasnodar</div>
+        <span class="event__stageTime">19:30</span>
+      </div>
+    </div>
+  `);
+  const matches = scrapeMatches(now);
+  expect(matches).toHaveLength(1);
+  expect(matches[0].homeTeam).toBe('Dynamo Makhachkala');
+  expect(matches[0].startTime.getHours()).toBe(19);
+  expect(matches[0].startTime.getMinutes()).toBe(30);
+});
+
+test('сегодняшний матч без date-заголовка исключается, если время уже прошло', () => {
+  const now = new Date(2026, 7, 23, 20, 0); // 20:00, матч в 19:30 уже начался
+  buildDOM(`
+    <div class="leagues--static event--leagues sportName soccer">
+      <div class="headerLeague__wrapper">
+        <span data-testid="wcl-scores-simple-text-01">Premier League</span>
+      </div>
+      <div class="event__match event__match--scheduled" data-event-row="true">
+        <a class="eventRowLink" href="https://www.flashscore.info/match/football/dynamo-makhachkala/krasnodar/"></a>
+        <div class="event__homeParticipant">Dynamo Makhachkala</div>
+        <div class="event__awayParticipant">Krasnodar</div>
+        <span class="event__stageTime">19:30</span>
+      </div>
+    </div>
+  `);
+  expect(scrapeMatches(now)).toHaveLength(0);
 });

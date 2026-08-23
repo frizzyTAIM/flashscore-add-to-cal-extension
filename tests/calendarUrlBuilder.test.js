@@ -67,3 +67,17 @@ test('end time crosses midnight correctly', () => {
   const [, end] = params.get('dates').split('/');
   expect(end).toBe('20260524T010000Z');
 });
+
+// --- timeKnown: false (kickoff time not yet announced) ---
+
+test('timeKnown false produces an all-day event (date only, no time, no Z)', () => {
+  const match = { ...baseMatch, startTime: new Date(2027, 1, 27), timeKnown: false };
+  const { params } = parseUrl(buildCalendarUrl(match));
+  expect(params.get('dates')).toBe('20270227/20270228');
+});
+
+test('timeKnown false appends a note that the kickoff time is unannounced', () => {
+  const match = { ...baseMatch, startTime: new Date(2027, 1, 27), timeKnown: false, venue: null };
+  const { params } = parseUrl(buildCalendarUrl(match));
+  expect(params.get('details')).toContain('not yet announced');
+});

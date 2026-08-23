@@ -46,10 +46,13 @@ MatchData {
   awayTeam: string
   tournament: string
   startTime: Date        // UTC
+  timeKnown: boolean      // false when Flashscore hasn't announced a kickoff time yet
   venue: string | null
   matchUrl: string
 }
 ```
+
+Flashscore renders match date/time in at least three shapes depending on how far out the match is and which page it's on, and the scraper has a parser for each: bare time only + separate date-section header (favorites page), bare time only with no header at all (today's match on a team page — assume today), combined date+time in one field (`"18.06. 00:00"`), and date-only with no time for fixtures whose kickoff hasn't been announced (`"27.02.2027"`, `timeKnown: false` → `CalendarUrlBuilder` makes it an all-day event instead of guessing a time).
 
 ### 2. CalendarUrlBuilder
 Pure function. Takes `MatchData`, returns Google Calendar URL string. No DOM interaction.
