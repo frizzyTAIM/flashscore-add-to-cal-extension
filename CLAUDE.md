@@ -29,8 +29,8 @@ Chrome Extension adds a 📅 emoji button in the right icon column of every upco
 - **Event duration**: 2 hours (start time + 2h)
 - **Event description**: Flashscore match URL + venue/stadium
 - **Time handling**: All times converted to UTC in `YYYYMMDDTHHmmssZ` format; Google Calendar displays in user's local timezone automatically
-- **Scope**: `flashscore.info/favorites/`, `flashscore.info/football/*/*/` (tournament/league pages), `flashscore.info/team/*/*/fixtures/` (team fixtures) — only upcoming matches (startTime > now). Check `manifest.json` content_scripts.matches for the authoritative current list.
-- **Dynamic updates**: MutationObserver handles DOM changes without page reload
+- **Scope**: `flashscore.info/favorites/`, `flashscore.info/football/*/*/` (tournament/league pages), `flashscore.info/team/*/*/` (team overview + fixtures pages both use the same "Scheduled" markup) — only upcoming matches (startTime > now). Check `manifest.json` content_scripts.matches for the authoritative current list.
+- **Dynamic updates**: MutationObserver on `document.body` handles DOM changes without page reload — deliberately not scoped to a specific inner container, since Flashscore's SPA routing unmounts/remounts those on soft navigation and would silently kill a narrower observer
 - **Button placement**: Right icon column of each match row, alongside existing icons (headphones etc.)
 - **No button duplication**: Rows marked with a data attribute after injection
 - **Selector fragility**: Flashscore's CSS classes drift over time (e.g. `.event__time` was replaced by `.event__stageTime` on most pages). `matchScraper` checks both old and new class names as fallbacks rather than assuming one — expect to keep doing this when pages break.
