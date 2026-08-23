@@ -8,6 +8,10 @@ A small Chrome extension that adds a 📅 button next to every upcoming football
 
 ## English
 
+This is for people who plan around a calendar and follow football — who don't want to miss a match from the team(s) they care about, but also don't want *every* match ever played dumped into their schedule. Flashscore has no built-in "add to Google Calendar" button, so this extension closes that specific gap: one click, right on the match you're already looking at.
+
+Everything happens locally, in your browser. The extension reads Flashscore's own page markup and opens a pre-filled Google Calendar link — it doesn't send anything anywhere, no server, no analytics. It's built and tested for **desktop Chrome only**; it may or may not work if loaded into Chrome on mobile, that's untested.
+
 ### What it does
 
 On your Flashscore favorites page, on tournament/league pages, and on a team's fixtures page, this extension injects a 📅 icon next to every upcoming match. Click it and Google Calendar opens in a new tab with the event pre-filled:
@@ -21,7 +25,7 @@ After clicking, the icon turns into ✅ for two seconds as confirmation, then re
 
 ### Problem it solves
 
-Following several teams and leagues on Flashscore means checking the fixtures list manually and copy-pasting match details into a calendar one by one. With several matches a week across different competitions, this is tedious and matches get missed. This extension turns "add to calendar" into a single click, right where you're already looking at the match.
+Following several teams and leagues on Flashscore means checking the fixtures list manually and copy-pasting match details into a calendar one by one. With several matches a week across different competitions, this is tedious and matches get missed.
 
 ### Supported pages
 
@@ -58,6 +62,10 @@ Tests run with Jest + jsdom and cover the pure logic modules (calendar URL build
 
 ## Русский
 
+Это для тех, кто живёт по календарю и любит футбол — кто не хочет пропускать матчи команды (или команд), за которой следит, но при этом не хочет, чтобы в календарь валились вообще все матчи подряд. У Flashscore нет встроенной кнопки "добавить в Google Calendar" — это расширение закрывает именно этот пробел: один клик прямо на том матче, на который вы и так смотрите.
+
+Всё происходит локально, в браузере. Расширение читает собственную вёрстку страницы Flashscore и открывает предзаполненную ссылку Google Calendar — никуда ничего не отправляется, ни сервера, ни аналитики. Собрано и протестировано только для **десктопного Chrome**; будет ли работать при установке в мобильный Chrome — не проверялось.
+
 ### Что делает
 
 На странице избранного Flashscore, на страницах турниров/лиг и на странице расписания конкретной команды расширение добавляет иконку 📅 рядом с каждым предстоящим матчем. Клик по ней открывает Google Calendar в новой вкладке с уже заполненным событием:
@@ -71,7 +79,7 @@ Tests run with Jest + jsdom and cover the pure logic modules (calendar URL build
 
 ### Какую проблему решает
 
-Если вы следите за несколькими командами и лигами на Flashscore, приходится вручную открывать список матчей и по одному переносить их в календарь. При 4-5 матчах в неделю по разным турнирам это утомительно, и часть матчей теряется. Расширение сводит "добавить в календарь" к одному клику прямо там, где вы уже смотрите на матч.
+Если вы следите за несколькими командами и лигами на Flashscore, приходится вручную открывать список матчей и по одному переносить их в календарь. При 4-5 матчах в неделю по разным турнирам это утомительно, и часть матчей теряется.
 
 ### Поддерживаемые страницы
 
