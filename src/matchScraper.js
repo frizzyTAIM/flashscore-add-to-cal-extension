@@ -82,8 +82,10 @@ function scrapeMatches(now = new Date()) {
 
   for (const row of rows) {
     const sportSection = row.closest('.sportName');
+    // Flashscore renamed this testid from wcl-scores-simple-text-01 to wcl-simple-text-01
+    // on at least some pages; keep both so the league name doesn't silently disappear.
     const tournament = sportSection
-      ?.querySelector('span[data-testid="wcl-scores-simple-text-01"]')
+      ?.querySelector('span[data-testid="wcl-scores-simple-text-01"], span[data-testid="wcl-simple-text-01"]')
       ?.textContent?.trim() ?? '';
 
     // Flashscore has migrated most pages from .event__time to .event__stageTime;

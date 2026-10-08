@@ -376,3 +376,32 @@ test('сегодняшний матч без date-заголовка исклю�
   `);
   expect(scrapeMatches(now)).toHaveLength(0);
 });
+
+// --- tournament extraction: Flashscore renamed wcl-scores-simple-text-01 -> wcl-simple-text-01 ---
+
+test('название лиги читается из нового data-testid wcl-simple-text-01', () => {
+  buildDOM(`
+    <div class="leagues--static event--leagues sportName soccer">
+      <div class="headerLeague__wrapper">
+        <a class="headerLeague__title">
+          <span data-testid="wcl-simple-text-01">Premier League</span>
+        </a>
+      </div>
+      <div class="event__match event__match--scheduled" data-event-row="true">
+        <a class="eventRowLink" href="https://www.flashscore.info/match/football/krasnodar/zenit/"></a>
+        <div class="event__homeParticipant">Krasnodar</div>
+        <div class="event__awayParticipant">Zenit</div>
+        <span class="event__stageTime">10.10. 19:30</span>
+      </div>
+    </div>
+  `);
+  const matches = scrapeMatches(FUTURE);
+  expect(matches).toHaveLength(1);
+  expect(matches[0].tournament).toBe('Premier League');
+});
+
+test('название лиги по-прежнему читается из старого data-testid wcl-scores-simple-text-01', () => {
+  buildDOM(TEAM_FIXTURES_HTML);
+  const matches = scrapeMatches(FUTURE);
+  expect(matches.every(m => m.tournament === 'Premier League')).toBe(true);
+});

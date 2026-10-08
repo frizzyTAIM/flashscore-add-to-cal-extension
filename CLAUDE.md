@@ -33,7 +33,7 @@ Chrome Extension adds a 📅 emoji button in the right icon column of every upco
 - **Dynamic updates**: MutationObserver on `document.body` handles DOM changes without page reload — deliberately not scoped to a specific inner container, since Flashscore's SPA routing unmounts/remounts those on soft navigation and would silently kill a narrower observer
 - **Button placement**: Right icon column of each match row, alongside existing icons (headphones etc.)
 - **No button duplication**: Rows marked with a data attribute after injection
-- **Selector fragility**: Flashscore's CSS classes drift over time (e.g. `.event__time` was replaced by `.event__stageTime` on most pages). `matchScraper` checks both old and new class names as fallbacks rather than assuming one — expect to keep doing this when pages break.
+- **Selector fragility**: Flashscore's CSS classes and `data-testid`s drift over time, often as a partial rollout (old and new both live on different pages simultaneously) — e.g. `.event__time` → `.event__stageTime`, and the league-title `data-testid` `wcl-scores-simple-text-01` → `wcl-simple-text-01` (#12). `matchScraper` checks both old and new names as fallbacks rather than assuming one — expect to keep doing this when pages break.
 
 ## Architecture: 4 Modules
 
